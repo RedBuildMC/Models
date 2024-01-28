@@ -1,0 +1,18 @@
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+.idea/
+bin/
+out/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+.gradle/buildOutputCleanup/outputFiles.bin
+.gradle/buildOutputCleanup/buildOutputCleanup.lock
+bungee/build.gradle
+spigot/build.gradle
