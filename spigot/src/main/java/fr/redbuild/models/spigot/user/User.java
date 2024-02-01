@@ -16,8 +16,10 @@ import fr.redbuild.models.spigot.grade.GradeManager;
 import fr.redbuild.models.spigot.utils.injector.Injector;
 import fr.redbuild.models.spigot.utils.mongo.Id;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter
 public class User {
     @BsonId
     @Id
@@ -30,28 +32,36 @@ public class User {
     private Date firstConnection;
     @BsonProperty
     private Map<String,String> attributes;
-
+    @BsonIgnore
     public void addAttribute(String key, String value) {
         attributes.put(key, value);
     }
-
-    public void hasAttribute(String key) {
-        attributes.containsKey(key);
+    @BsonIgnore
+    public void removeAttribute(String key) {
+        attributes.remove(key);
     }
-
+    @BsonIgnore
+    public void setAttribute(String key, String value) {
+        attributes.put(key, value);
+    }
+    @BsonIgnore
+    public boolean hasAttribute(String key) {
+        return attributes.containsKey(key);
+    }
+    @BsonIgnore
     public String getAttribute(String key) {
         return attributes.get(key);
     }
-
+    @BsonIgnore
     public Player getPlayer(){
         return Bukkit.getServer().getPlayer(uuid);
     }
 
     @BsonIgnore
-    public Grade getGrade(){
+    public Grade getUserGrade(){
         return Injector.getInstance(GradeManager.class).getGrade(grade);
     }
-
+    @BsonIgnore
     public void addGrade(Grade grade){
         this.grade = grade.getUuid();
     }
@@ -66,7 +76,7 @@ public class User {
 
     public User(){
     }
-
+    @BsonIgnore
     public String toString(){
         return "User(uuid="+uuid+",displayName="+displayName+",grade="+grade+",firstConnection="+firstConnection+",attribute="+attributes+")";
     }

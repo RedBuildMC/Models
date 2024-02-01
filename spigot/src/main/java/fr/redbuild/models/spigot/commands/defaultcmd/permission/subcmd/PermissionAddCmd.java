@@ -17,23 +17,14 @@ public class PermissionAddCmd extends SubCmd {
     public PermissionAddCmd(Boolean optional) {
         super("add", optional);
         rc(1, new PermissionArgument("permission", false));
-        rc(2, new PlayerArgument("player", true));
+        rc(2, new PlayerArgument("player", false));
     }
 
     @Override
     public void execute(CommandSender sender, String args, Argument argument) {
-        if (argument.getOptional(2, Player.class).isPresent()) {
-            Player player = argument.getOptional(2, Player.class).get();
+            Player player = argument.get(2, Player.class);
             String permission = argument.get(1, String.class);
             permissionManager.addPermission(permission, player);
             sender.sendMessage("Vous avez ajouté la permission " + permission + " à " + player.getName());
-        } else {
-            if (sender instanceof Player player) {
-                String permission = argument.get(1, String.class);
-                permissionManager.addPermission(permission, player);
-                sender.sendMessage("Vous avez ajouté la permission " + permission + " à " + player.getName());
-            }
-        }
-
     }
 }

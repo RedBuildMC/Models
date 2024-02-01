@@ -10,6 +10,7 @@ import fr.redbuild.models.spigot.logger.CtMsg;
 import fr.redbuild.models.spigot.mode.BuildMode;
 import fr.redbuild.models.spigot.packet.SignUtils;
 import fr.redbuild.models.spigot.plugin.PluginController;
+import fr.redbuild.models.spigot.user.UserManager;
 import fr.redbuild.models.spigot.utils.injector.Injector;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
@@ -27,6 +28,8 @@ import java.util.*;
 public class RegionController {
     @Autowired
     private BuildMode buildMode;
+    @Autowired
+    private UserManager userManager;
     private final MiniMessage mm = MiniUtils.getMiniMessage();
 
     private final RegionRepository regionRepository = Injector.registerInstance(new RegionRepository());
@@ -130,7 +133,7 @@ public class RegionController {
                         oldRegion = DEFAULT_REGION;
                     if(newRegion == null)
                         newRegion = DEFAULT_REGION;
-                    if(buildMode.contains(player)){
+                    if(buildMode.contains(player) && (!userManager.getUser(player).hasAttribute("build_messages") || userManager.getUser(player).getAttribute("build_messages").equals("true"))){
                         // player.sendMessage(mm.deserialize("<gold>Changement de region de <red>" + oldRegion.getName() + "<gold> vers <green>" + newRegion.getName()));
                         CtMsg.sendMiniMessage("<gold>Changement de region de <red>" + oldRegion.getName() + "<gold> vers <green>" + newRegion.getName(), player);
                     }

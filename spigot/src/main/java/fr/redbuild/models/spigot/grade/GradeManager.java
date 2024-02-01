@@ -79,7 +79,7 @@ public class GradeManager {
             user.addGrade(DEFAULT);
         }
         Player player = user.getPlayer();
-        Grade grade = user.getGrade();
+        Grade grade = user.getUserGrade();
         player.displayName(mm.deserialize(grade.getPrefix() + user.getDisplayName()));
         player.playerListName(mm.deserialize(grade.getPrefix() + user.getDisplayName()));
         for(String permission : grade.getPermissions().keySet()){

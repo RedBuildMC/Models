@@ -174,7 +174,9 @@ public class ItemBuilder {
 	 * @return GuiItemBuilder
 	 */
     public ItemBuilder name(String name){
-        item.getItemMeta().displayName(mm.deserialize(name));
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.displayName(mm.deserialize(name));
+        item.setItemMeta(itemMeta);
         return this;
     }
 
@@ -195,7 +197,9 @@ public class ItemBuilder {
 	 * @return GuiItemBuilder
 	 */
     public ItemBuilder name(Component name){
-        item.getItemMeta().displayName(name);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(name);
+        item.setItemMeta(meta);
         return this;
     }
 

@@ -8,10 +8,12 @@ import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
+import fr.redbuild.models.spigot.utils.mongo.Id;
 import lombok.Getter;
 @Getter
 public class Grade {
     @BsonId
+    @Id
     private UUID uuid;
     @BsonProperty
     private String name;
@@ -23,11 +25,11 @@ public class Grade {
     private Map<String,Boolean> permissions;
     @BsonProperty
     private Map<String,String> attributes;
-
+    @BsonIgnore
     public void addPermission(String key, Boolean value) {
         permissions.put(key, value);
     }
-
+    @BsonIgnore
     public void hasPermission(String key) {
         permissions.containsKey(key);
     }
@@ -35,11 +37,11 @@ public class Grade {
     public Boolean getPermission(String key) {
         return permissions.get(key);
     }
-
+    @BsonIgnore
     public void addAttribute(String key, String value) {
         attributes.put(key, value);
     }
-
+    @BsonIgnore
     public void hasAttribute(String key) {
         attributes.containsKey(key);
     }

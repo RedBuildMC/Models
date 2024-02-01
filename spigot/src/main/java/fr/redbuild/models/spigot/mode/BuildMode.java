@@ -5,6 +5,7 @@ import fr.redbuild.models.spigot.packet.PacketUtils;
 import fr.redbuild.models.spigot.plugin.PluginController;
 import fr.redbuild.models.spigot.region.Region;
 import fr.redbuild.models.spigot.region.RegionController;
+import fr.redbuild.models.spigot.user.UserManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -16,6 +17,8 @@ import java.util.List;
 public class BuildMode {
     @Autowired
     private RegionController regionController;
+    @Autowired
+    private UserManager userManager;
     private List<Player> players = new ArrayList<>();
 
     private BukkitTask checker = null;
@@ -26,7 +29,10 @@ public class BuildMode {
 
     public void register(Player player){
         players.add(player);
-        regionController.getRegions().forEach(region -> region.getParticles().forEach(packet -> PacketUtils.sendPacket(player,packet)));
+        regionController.getRegions().forEach(region -> {
+            if(region.visibility && (!userManager.getUser(player).hasAttribute("build_particles") || userManager.getUser(player).getAttribute("build_particles").equals("true")))
+                region.getParticles().forEach(packet -> PacketUtils.sendPacket(player,packet));
+            });
         if(checker == null)
             startTimer();
     }
@@ -43,7 +49,7 @@ public class BuildMode {
     public void step(){
         regionController.getRegions().forEach(r -> {
             Bukkit.getOnlinePlayers().forEach(player -> {
-                 if(r.visibility)
+                 if(r.visibility && (!userManager.getUser(player).hasAttribute("build_particles") || userManager.getUser(player).getAttribute("build_particles").equals("true")))
                     PacketUtils.sendPackets(players, r.getParticles());
             });
         });

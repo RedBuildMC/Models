@@ -68,6 +68,7 @@ public abstract class PluginController extends JavaPlugin {
     @Override
     public void onDisable(){
         this.pluginStop();
+        Injector.getInstance(UserManager.class).deInit();
         if(regionController != null)
             regionController.stopRegionChecker();
     }

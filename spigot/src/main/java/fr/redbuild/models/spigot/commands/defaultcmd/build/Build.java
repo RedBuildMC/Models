@@ -4,6 +4,7 @@ import fr.redbuild.models.spigot.Autowired.Autowired;
 import fr.redbuild.models.spigot.commands.Cmd;
 import fr.redbuild.models.spigot.commands.arg.Argument;
 import fr.redbuild.models.spigot.commands.defaultarguments.PlayerArgument;
+import fr.redbuild.models.spigot.commands.defaultcmd.build.subcmd.BuildConfigSubCmd;
 import fr.redbuild.models.spigot.mode.BuildMode;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.CommandSender;
@@ -16,6 +17,7 @@ public class Build extends Cmd {
     private MiniMessage mm;
     public Build() {
         super("build", "Build mode");
+        rc(1,new BuildConfigSubCmd(true));
         rc(1,new PlayerArgument("player",true));
         setPermission("redbuild.models.build");
     }

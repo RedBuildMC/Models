@@ -25,6 +25,11 @@ public class UserManager {
         gradeManager.init();
     }
 
+    public void deInit(){
+        registeredUser.forEach(user -> userRepository.save(user));
+        registeredUser.clear();
+    }
+
     public void playerJoin(Player Player){
         User user = userRepository.findById(Player.getUniqueId()).orElse(null);
         if(user == null){
@@ -35,15 +40,13 @@ public class UserManager {
     }
 
     public void playerQuit(Player Player){
-        User user = registeredUser.stream().filter(u -> u.getUuid().equals(Player.getUniqueId())).findFirst().orElse(null);
-        if(user != null){
-            userRepository.save(user);
-            registeredUser.remove(user);
-        }
+        User user = getUser(Player);
+        userRepository.save(user);
+        registeredUser.remove(user);
     }
 
     public User getUser(Player player){
-        return registeredUser.stream().filter(u -> u.getUuid().equals(player.getUniqueId())).findFirst().orElse(null);
+        return getUser(player.getUniqueId());
     }
 
     public User getUser(String name){
