@@ -51,7 +51,7 @@ public class BuildConfigSubCmd extends SubCmd{
                             }
                         });
             } else {
-                item1.icon(Material.GREEN_CONCRETE).name("<gold>Particules : <red>Désactiver").desc("<green>Cliquez pour activer les particules")
+                item1.icon(Material.RED_CONCRETE).name("<gold>Particules : <red>Désactiver").desc("<green>Cliquez pour activer les particules")
                         .onClick(() -> {
                             if (user.hasAttribute("build_particles")) {
                                 user.setAttribute("build_particles", "true");
@@ -65,7 +65,7 @@ public class BuildConfigSubCmd extends SubCmd{
                         });
             }
             if (!user.hasAttribute("build_messages") || user.getAttribute("build_messages").equals("true")) {
-                item2.icon(Material.RED_CONCRETE).name("<gold>Messages : <green>Activer").desc("<red>Cliquez pour désactiver les messages")
+                item2.icon(Material.GREEN_CONCRETE).name("<gold>Messages : <green>Activer").desc("<red>Cliquez pour désactiver les messages")
                         .onClick(() -> {
                             if (user.hasAttribute("build_messages")) {
                                 user.setAttribute("build_messages", "false");
@@ -78,7 +78,7 @@ public class BuildConfigSubCmd extends SubCmd{
                             }
                         });
             } else {
-                item2.icon(Material.GREEN_CONCRETE).name("<gold>Messages : <red>Désactiver").desc("<green>Cliquez pour activer les messages")
+                item2.icon(Material.RED_CONCRETE).name("<gold>Messages : <red>Désactiver").desc("<green>Cliquez pour activer les messages")
                         .onClick(() -> {
                             if (user.hasAttribute("build_messages")) {
                                 user.setAttribute("build_messages", "true");
