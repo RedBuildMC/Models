@@ -3,6 +3,7 @@ package fr.redbuild.models.spigot.block;
 import java.util.UUID;
 
 import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bukkit.Location;
 
@@ -11,7 +12,9 @@ import fr.redbuild.models.spigot.utils.mongo.Id;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 @Getter
 @Setter
 public class Area {
@@ -20,10 +23,34 @@ public class Area {
     private UUID uuid = UUID.randomUUID();
     @BsonProperty
     private List<RBlock> blocks;
+    @BsonProperty
+    private Map<String,String> attributes;
 
     public Area(List<RBlock> blocks, UUID uuid) {
         this.blocks = blocks;
         this.uuid = uuid;
+        this.attributes = new HashMap<>();
+    }
+
+    @BsonIgnore
+    public void addAttribute(String key, String value) {
+        attributes.put(key, value);
+    }
+    @BsonIgnore
+    public void removeAttribute(String key) {
+        attributes.remove(key);
+    }
+    @BsonIgnore
+    public void setAttribute(String key, String value) {
+        attributes.put(key, value);
+    }
+    @BsonIgnore
+    public boolean hasAttribute(String key) {
+        return attributes.containsKey(key);
+    }
+    @BsonIgnore
+    public String getAttribute(String key) {
+        return attributes.get(key);
     }
 
     public Area(Location start,Location end){

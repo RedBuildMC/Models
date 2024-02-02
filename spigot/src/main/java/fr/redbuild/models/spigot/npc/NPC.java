@@ -23,6 +23,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class NPC {
@@ -46,6 +48,29 @@ public class NPC {
     public Location npcLocation;
     @BsonProperty
     public boolean visibleName = false;
+    @BsonProperty
+    public Map<String, String> attributes = new HashMap<>();
+
+    @BsonIgnore
+    public void addAttribute(String key, String value) {
+        attributes.put(key, value);
+    }
+    @BsonIgnore
+    public void removeAttribute(String key) {
+        attributes.remove(key);
+    }
+    @BsonIgnore
+    public void setAttribute(String key, String value) {
+        attributes.put(key, value);
+    }
+    @BsonIgnore
+    public boolean hasAttribute(String key) {
+        return attributes.containsKey(key);
+    }
+    @BsonIgnore
+    public String getAttribute(String key) {
+        return attributes.get(key);
+    }
 
 
     /**

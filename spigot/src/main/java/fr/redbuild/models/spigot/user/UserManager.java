@@ -54,7 +54,10 @@ public class UserManager {
     }
 
     public User getUser(UUID uuid){
-        return registeredUser.stream().filter(u -> u.getUuid().equals(uuid)).findFirst().orElse(null);
+        if(registeredUser.stream().noneMatch(u -> u.getUuid().equals(uuid)))
+            return userRepository.findById(uuid).orElse(null);
+        else
+            return registeredUser.stream().filter(u -> u.getUuid().equals(uuid)).findFirst().orElse(null);
     }
 
     public void addUser(User user){

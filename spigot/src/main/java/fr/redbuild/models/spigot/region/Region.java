@@ -19,7 +19,9 @@ import org.bukkit.entity.Player;
 import fr.redbuild.models.spigot.utils.mongo.Id;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Getter
@@ -38,6 +40,8 @@ public class Region {
         private Region sousRegion = null;
         @BsonProperty("visibility")
         public boolean visibility;
+        @BsonProperty
+        private Map<String, String> attributes = new HashMap<>();
         @BsonIgnore
         private transient List<Packet<?>> particles = new ArrayList<>();
 
@@ -73,6 +77,27 @@ public class Region {
                 this.name = name;
                 this.uuid = uuid;
                 this.visibility = visibilite;
+        }
+
+        @BsonIgnore
+        public void addAttribute(String key, String value) {
+            attributes.put(key, value);
+        }
+        @BsonIgnore
+        public void removeAttribute(String key) {
+            attributes.remove(key);
+        }
+        @BsonIgnore
+        public void setAttribute(String key, String value) {
+            attributes.put(key, value);
+        }
+        @BsonIgnore
+        public boolean hasAttribute(String key) {
+            return attributes.containsKey(key);
+        }
+        @BsonIgnore
+        public String getAttribute(String key) {
+            return attributes.get(key);
         }
 
         public boolean hasSousRegion() {
