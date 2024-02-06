@@ -64,7 +64,9 @@ public class RBlock {
         this.location = this.location.add(compareLocation(location));
     }
 
-    public void alignToZero(Location repository) {
-        location = location.add(repository.subtract(location));
+    public RBlock alignToZero(Location repository) {
+        //location-repository
+        location = repository.subtract(location);
+        return this;
     }
 }

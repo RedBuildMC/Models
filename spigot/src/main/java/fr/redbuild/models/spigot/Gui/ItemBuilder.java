@@ -5,11 +5,14 @@ import fr.redbuild.models.spigot.listeners.handlers.HandlerListener;
 import fr.redbuild.models.spigot.Kyori.MiniUtils;
 import fr.redbuild.models.spigot.handlers.OnInteractHandler;
 import fr.redbuild.models.spigot.player.ItemUtils;
+
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import fr.redbuild.models.spigot.handlers.OnClickHandler;
 import lombok.Getter;
@@ -177,6 +180,14 @@ public class ItemBuilder {
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.displayName(mm.deserialize(name));
         item.setItemMeta(itemMeta);
+        return this;
+    }
+
+    public ItemBuilder skullOwner(String owner){
+        if(item.getType() == Material.PLAYER_HEAD){
+            SkullMeta meta = (SkullMeta) item.getItemMeta();
+            meta.setOwningPlayer(Bukkit.getOfflinePlayer(owner));
+        }
         return this;
     }
 

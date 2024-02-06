@@ -2,6 +2,7 @@ package fr.redbuild.models.spigot.player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 import fr.redbuild.models.spigot.Autowired.Autowired;
@@ -25,14 +26,24 @@ public class PlayerManager {
         regionController.registerPlayer(player);
         
         for(NPC npc : onlineNPC){
-            npc.spawn(player);
+            if(npc.getNpcLocation().getWorld() == player.getWorld())
+                npc.spawn(player);
         }
         PacketUtils.injectPlayer(player);
         scoreBoardManager.join(player);
     }
 
+    public void worldChange(Player player){
+        for(NPC npc : onlineNPC){
+            if(npc.getNpcLocation().getWorld() == player.getWorld())
+                npc.spawn(player);
+            else
+                npc.deSpawn(player);
+        }
+    }
+
     public int getFreeId(){
-        return onlineNPC.stream().mapToInt(npc -> npc.entityID).max().orElse(0) + 1;
+        return new Random().nextInt((5000 - 1000) + 1) + 1000;
     }
 
     public void deRegisterPlayer(Player player){
@@ -40,7 +51,7 @@ public class PlayerManager {
     }
 
     public NPC getNPC(UUID uuid){
-        return onlineNPC.stream().filter(npc -> npc.npcUUID == uuid).findAny().orElse(null);
+        return onlineNPC.stream().filter(npc -> npc.getNpcUUID() == uuid).findAny().orElse(null);
     }
 
     public void registerNPC(NPC npc){
@@ -52,10 +63,10 @@ public class PlayerManager {
     }
 
     public void removeNPC(int npc){
-        onlineNPC.stream().filter(npc1 -> npc1.entityID == npc).findAny().ifPresent(onlineNPC::remove);
+        onlineNPC.stream().filter(npc1 -> npc1.getEntityID() == npc).findAny().ifPresent(onlineNPC::remove);
     }
 
     public boolean isRegister(int npc){
-        return onlineNPC.stream().noneMatch(npc1 -> npc1.entityID == npc);
+        return onlineNPC.stream().noneMatch(npc1 -> npc1.getEntityID() == npc);
     }
 }

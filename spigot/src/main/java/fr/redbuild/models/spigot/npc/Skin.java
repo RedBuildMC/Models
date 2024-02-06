@@ -7,12 +7,15 @@ import org.bson.codecs.pojo.annotations.BsonProperty;
 @Setter
 public class Skin {
     @BsonProperty
-    private final String textureValue;
+    private String textureValue;
     @BsonProperty
-    private final String textureSignature;
+    private String textureSignature;
 
     public Skin(String textureValue, String textureSignature) {
         this.textureValue = textureValue;
         this.textureSignature = textureSignature;
+    }
+
+    public Skin() {
     }
 }

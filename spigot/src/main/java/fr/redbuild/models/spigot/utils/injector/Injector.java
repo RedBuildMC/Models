@@ -7,6 +7,7 @@ import fr.redbuild.models.spigot.commands.arg.CmdArgument;
 import fr.redbuild.models.spigot.commands.arg.CmdArgumentWP;
 import fr.redbuild.models.spigot.logger.CtMsg;
 import fr.redbuild.models.spigot.plugin.PluginController;
+import fr.redbuild.models.spigot.plugin.ServerInfo;
 
 import org.bukkit.ChatColor;
 import org.bukkit.event.Listener;
@@ -159,11 +160,27 @@ public class Injector {
      * @param klass la classe à injecter
      */
     public static void inject(Class<?> klass) {
-        if (klass.getSuperclass() != SubCmd.class && klass.getSuperclass() != CmdArgument.class && klass.getSuperclass() != CmdArgumentWP.class && klass.getSuperclass() != Cmd.class && !Arrays.stream(klass.getInterfaces()).toList().contains(Listener.class)) {
+        if (klass.getSuperclass() != ServerInfo.class && klass.getSuperclass() != SubCmd.class && klass.getSuperclass() != CmdArgument.class && klass.getSuperclass() != CmdArgumentWP.class && klass.getSuperclass() != Cmd.class && !Arrays.stream(klass.getInterfaces()).toList().contains(Listener.class)) {
             for (Field field : klass.getDeclaredFields()) {
                 if (field.isAnnotationPresent(Autowired.class)) {
                     inject(instance(klass));
                 }
+            }
+        }
+        if(klass.getSuperclass() == ServerInfo.class){
+            try {
+                ServerInfo serverInfo = (ServerInfo) instance(klass);
+                for (Field field : klass.getDeclaredFields()) {
+                    if (field.isAnnotationPresent(Autowired.class)) {
+                        inject(serverInfo);
+                        break;
+                    }
+                }
+                PluginController.INSTANCE.registerClassInfo(serverInfo);
+                // System.out.println("Register server info : \"" + klass.getName() + "\" !");  
+                CtMsg.log("§aRegister server info : §6§l\"" + klass.getName() + "\"§r§a !");
+            }catch (Exception e){
+                e.printStackTrace();
             }
         }
         if (klass.getSuperclass() == Cmd.class) {

@@ -11,12 +11,14 @@ import fr.redbuild.models.spigot.mode.EditNpcLocationMode;
 import fr.redbuild.models.spigot.npc.NPC;
 import fr.redbuild.models.spigot.npc.NPCController;
 import fr.redbuild.models.spigot.packet.SignUtils;
+import fr.redbuild.models.spigot.player.LocationEditManager;
 import fr.redbuild.models.spigot.utils.ConfirmeChat;
 import fr.redbuild.models.spigot.utils.injector.Injector;
 import net.md_5.bungee.api.ChatColor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -45,6 +47,7 @@ public class HandlerListener implements Listener {
     private static final Map<BlockPos, SignHandler> signHandler = new HashMap<>();
     private static final Map<UUID, InteractAtNpcHandler> interactAtNpcHandler = new HashMap<>();
     private static final List<EditNpcLocationMode> editNpcLocationMode = new ArrayList<>();
+    private static final Map<Player,LocationEditMode> locationEditMode = new HashMap<>();
 
     //All EventHandler
     @EventHandler
@@ -70,6 +73,18 @@ public class HandlerListener implements Listener {
                     }
                 }
             }
+            if(locationEditMode.containsKey(event.getPlayer())){
+                Location loc = event.getPlayer().getLocation();
+                if(event.getClickedBlock() != null)
+                 loc = event.getClickedBlock().getLocation();
+                if(event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)
+                    locationEditMode.get(event.getPlayer()).cancel(event.getPlayer());
+                if(event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK)
+                    locationEditMode.get(event.getPlayer()).execute(event.getPlayer(),loc);
+                locationEditMode.remove(event.getPlayer());
+                event.setCancelled(true);
+            }
+            
 
     }
     @EventHandler
@@ -77,7 +92,7 @@ public class HandlerListener implements Listener {
         Player player = Bukkit.getServer().getPlayer(event.getWhoClicked().getUniqueId());
         if(clickHandler.containsKey(event.getCurrentItem()))
             clickHandler.get(event.getCurrentItem()).execute(event,player);
-        guiClickHandler.keySet().stream().filter(gui -> event.getView().getOriginalTitle().equalsIgnoreCase(gui.name())).findAny().ifPresent(gui -> guiClickHandler.get(gui).execute(event,player,gui.getItem(event.getSlot())));
+        guiClickHandler.keySet().stream().filter(gui -> event.getView().title().equals(gui.name())).findAny().ifPresent(gui -> guiClickHandler.get(gui).execute(event,player,gui.getItem(event.getSlot())));
     }
 
     @EventHandler
@@ -104,18 +119,33 @@ public class HandlerListener implements Listener {
         NPC npc = npcController.getNPC(event.getEntityID());
         if(npc != null) {
             Player player = event.getPlayer();
-            if (event.getActionType() == ServerboundInteractPacket.ActionType.INTERACT && player.hasPermission("epicraft.npc.edit") && buildMode.contains(player)) {
-                GuiBuilder gui = new GuiBuilder("Edit: <gold>" + npc.name).rows(1);
+            if (!buildMode.contains(player)) {
+                interactAtNpcHandler.keySet().stream().filter(uuid -> uuid == npcController.getNPC(event.getEntityID()).getNpcUUID()).findAny().ifPresent(npc1 -> interactAtNpcHandler.get(npc1).execute(event.getPlayer(), event, npc1));
+            } else if (event.getActionType() == ServerboundInteractPacket.ActionType.INTERACT && player.hasPermission("epicraft.npc.edit")){
+                GuiBuilder gui = new GuiBuilder("Edit: <gold>" + npc.getName()).rows(1);
                 gui.fillSides(Material.ORANGE_STAINED_GLASS_PANE);
-                gui.item(new ItemBuilder(Material.WRITABLE_BOOK, "Edit name").setPos(4).desc("Click to edit the name of npc").onClick(((event1, player1) -> {
+                gui.item(new ItemBuilder(Material.WRITABLE_BOOK, "Edit name").setPos(3).desc("Click to edit the name of npc").onClick(((event1, player1) -> {
                     event1.setCancelled(true);
-                    SignUtils.openSign(player1, "New name :", npc.name, ((event2, player2, text) -> {
+                    SignUtils.openSign(player1, "New name :", npc.getName(), ((event2, player2, text) -> {
                         player2.sendMessage(MiniUtils.getMiniMessage().deserialize("The npc's name is now :" + text.get(1)));
                         npc.setName(text.get(1));
                         npc.update();
                     }));
                 })));
-                gui.item(new ItemBuilder(Material.ENDER_PEARL, "Edit position").setPos(2).desc("Click to edit the position of npc").onClick(((event1, player1) -> {
+                gui.item(new ItemBuilder(Material.ENDER_PEARL, "Add teleportation").setPos(7).desc("Click to add teleportation").onClick(((event1, player1) -> {
+                    event1.setCancelled(true);
+                    Injector.getInstance(LocationEditManager.class).addEditor(player1, () -> {
+                        if(npc.hasAttribute("teleportation"))
+                            npc.setAttribute("teleportation", npc.locationToDocument(player.getLocation()));
+                        else
+                            npc.addAttribute("teleportation", npc.locationToDocument(player.getLocation()));
+                        npc.init();
+                        player1.sendMessage(MiniUtils.getMiniMessage().deserialize("<green>Teleportation added !"));
+                    }, () -> {
+                        player1.sendMessage(MiniUtils.getMiniMessage().deserialize("<red>Cancel !"));
+                    });
+                })));
+                gui.item(new ItemBuilder(Material.ENDER_PEARL, "Edit position").setPos(1).desc("Click to edit the position of npc").onClick(((event1, player1) -> {
                     player1.closeInventory();
                     event1.setCancelled(true);
                     player1.sendMessage(MiniUtils.getMiniMessage().deserialize("<gold>You are in Edit mode ! <red> Right click to cancel <gold> and <green>Left click to edit"));
@@ -124,7 +154,7 @@ public class HandlerListener implements Listener {
                     bar.addPlayer(player1);
                     this.registerEditMode(new EditNpcLocationMode(bar, player1, npc));
                 })));
-                gui.item(new ItemBuilder(Material.BARRIER, "Delete npc").setPos(6).desc("Click to delete the npc").onClick(((event1, player1) -> {
+                gui.item(new ItemBuilder(Material.BARRIER, "Delete npc").setPos(5).desc("Click to delete the npc").onClick(((event1, player1) -> {
                     // SignUtils.openSign(player1, "Are you sure ?", "yes(y) or no(n)", ((event2, player2, text) -> {
                     //     if (Objects.equals(text.get(2), "y") || Objects.equals(text.get(2), "yes")) {
                     //         npc.delete();
@@ -136,7 +166,7 @@ public class HandlerListener implements Listener {
                     confirmeChat.sendConfirmMsg(ChatColor.GOLD + "Are you sure to remove the NPC ? : ", ChatColor.GREEN + "[Delete] ", ChatColor.RED + " [Cancel]", () -> {
                         if (npcDelRequest.containsKey(player)) {
                             npc.delete();
-                            player.sendMessage(MiniUtils.getMiniMessage().deserialize("<green>Npc <gold>" + npc.name + "<green> was deleted !"));
+                            player.sendMessage(MiniUtils.getMiniMessage().deserialize("<green>Npc <gold>" + npc.getName() + "<green> was deleted !"));
                             npcDelRequest.remove(player);
                         }
                     }, () -> {
@@ -148,8 +178,6 @@ public class HandlerListener implements Listener {
                     event1.setCancelled(true);
                 })));
                 gui.open(player);
-            } else {
-                interactAtNpcHandler.keySet().stream().filter(uuid -> uuid == npcController.getNPC(event.getEntityID()).npcUUID).findAny().ifPresent(npc1 -> interactAtNpcHandler.get(npc1).execute(event.getPlayer(), event, npc1));
             }
         }
     }
@@ -157,6 +185,10 @@ public class HandlerListener implements Listener {
     //Register all handler
     public static void registerClickHandler(ItemStack item,OnClickHandler handler){
         clickHandler.put(item,handler);
+    }
+
+    public static void registerLocationEditHandler(Player player,LocationEditMode mode){
+        locationEditMode.put(player, mode);
     }
 
     public static void registerInteractHandler(ItemStack item,OnInteractHandler handler){
@@ -182,11 +214,11 @@ public class HandlerListener implements Listener {
         interactAtNpcHandler.put(uuid,handler);
     }
     public static void deRegisterInteractAtNpcHandler(NPC npc){
-        interactAtNpcHandler.remove(npc.npcUUID);
+        interactAtNpcHandler.remove(npc.getNpcUUID());
     }
 
     public static boolean isRegister(NPC npc) {
-        return interactAtNpcHandler.containsKey(npc.npcUUID);
+        return interactAtNpcHandler.containsKey(npc.getNpcUUID());
     }
 
     //Other function

@@ -67,8 +67,7 @@ public class MongoDBRepository<T, ID> implements CrudRepository<T, ID> {
 
     @Override
     public Optional<T> findById(ID id) {
-        for (T object : findAll()) {System.out.println(object.toString());
-            System.out.println(getId(object) + " " + id);
+        for (T object : findAll()) {
             if (getId(object) == null){
                 continue;
             }

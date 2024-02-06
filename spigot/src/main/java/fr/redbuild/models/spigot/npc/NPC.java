@@ -8,10 +8,14 @@ import fr.redbuild.models.spigot.packet.PacketUtils;
 import fr.redbuild.models.spigot.player.PlayerManager;
 import fr.redbuild.models.spigot.utils.injector.Injector;
 import fr.redbuild.models.spigot.utils.mongo.Id;
+import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+
+import org.bson.Document;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.codecs.pojo.annotations.BsonProperty;
@@ -26,7 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.UUID;
-
+@Getter
+@Setter
 public class NPC {
     
     @BsonIgnore
@@ -37,39 +42,68 @@ public class NPC {
     private final PlayerManager playerManager;
     @Id
     @BsonId
-    public UUID npcUUID = UUID.randomUUID();
+    private UUID npcUUID = UUID.randomUUID();
     @BsonProperty
-    public String name;
+    private String name;
     @BsonProperty
-    public Skin skin;
+    private Skin skin;
     @BsonProperty
-    public int entityID;
+    private int entityID;
     @BsonProperty
-    public Location npcLocation;
+    private Location npcLocation;
     @BsonProperty
-    public boolean visibleName = false;
+    private boolean visibleName = false;
     @BsonProperty
-    public Map<String, String> attributes = new HashMap<>();
+    private Map<String, Object> attributes = new HashMap<>();
 
     @BsonIgnore
-    public void addAttribute(String key, String value) {
+    public void addAttribute(String key, Object value) {
         attributes.put(key, value);
+        npcRepository.save(this);
     }
     @BsonIgnore
     public void removeAttribute(String key) {
         attributes.remove(key);
+        npcRepository.save(this);
     }
     @BsonIgnore
-    public void setAttribute(String key, String value) {
-        attributes.put(key, value);
+    public void setAttribute(String key, Object value) {
+        attributes.replace(key, value);
+        npcRepository.save(this);
     }
     @BsonIgnore
     public boolean hasAttribute(String key) {
+        npcRepository.save(this);
         return attributes.containsKey(key);
     }
     @BsonIgnore
-    public String getAttribute(String key) {
+    public Object getAttribute(String key) {
+        npcRepository.save(this);
         return attributes.get(key);
+    }
+
+    public void init(){
+        if(hasAttribute("teleportation")){
+            Location loc = (Location) documentToLocation((Document) getAttribute("teleportation"));
+            click((player, event, uuid) -> player.teleport(loc));
+        }
+    }
+
+    public Document locationToDocument(Location location) {
+        Document document = new Document();
+        document.put("x", location.getX());
+        document.put("y", location.getY());
+        document.put("z", location.getZ());
+        document.put("world", location.getWorld().getName());
+        return document;
+    }
+
+    public Location documentToLocation(Document document) {
+        double x = document.getDouble("x");
+        double y = document.getDouble("y");
+        double z = document.getDouble("z");
+        World world = Bukkit.getWorld(document.getString("world"));
+        return new Location(world, x, y, z);
     }
 
 
@@ -131,8 +165,14 @@ public class NPC {
         npcController = Injector.getInstance(NPCController.class);
         npcRepository = Injector.getInstance(NPCRepository.class);
         playerManager = Injector.getInstance(PlayerManager.class);
-        setTexture(player);
+        textureByPlayer(player);
         npcRepository.save(this);
+    }
+
+    public NPC(){
+        npcController = Injector.getInstance(NPCController.class);
+        npcRepository = Injector.getInstance(NPCRepository.class);
+        playerManager = Injector.getInstance(PlayerManager.class);
     }
 
     /**
@@ -150,7 +190,7 @@ public class NPC {
         npcController = Injector.getInstance(NPCController.class);
         npcRepository = Injector.getInstance(NPCRepository.class);
         playerManager = Injector.getInstance(PlayerManager.class);
-                setTexture(player);
+        textureByPlayer(player);
         npcRepository.save(this);
     }
 
@@ -161,54 +201,10 @@ public class NPC {
         npcRepository = Injector.getInstance(NPCRepository.class);
         playerManager = Injector.getInstance(PlayerManager.class);
         this.entityID = playerManager.getFreeId();
-        setTexture(player);
+        textureByPlayer(player);
         npcRepository.save(this);
     }
 
-    /**
-     * Définit le nom du NPC.
-     *
-     * @param name Le nom du NPC.
-     * @return L'instance du NPC.
-     */
-    @BsonIgnore
-    public NPC setName(String name) {
-        this.name = name;
-        if(npcRepository == null)
-            npcRepository = Injector.getInstance(NPCRepository.class);
-        npcRepository.save(this);
-        return this;
-    }
-
-    /**
-     * Définit l'ID de l'entité du NPC.
-     *
-     * @param id L'ID de l'entité du NPC.
-     * @return L'instance du NPC.
-     */
-    @BsonIgnore
-    public NPC setEntityId(int id) {
-        entityID = id;
-        if(npcRepository == null)
-            npcRepository = Injector.getInstance(NPCRepository.class);
-        npcRepository.save(this);
-        return this;
-    }
-
-    /**
-     * Définit si le nom du NPC est visible.
-     *
-     * @param visibleName Indique si le nom du NPC est visible.
-     * @return L'instance du NPC.
-     */
-    @BsonIgnore
-    public NPC setVisibleName(boolean visibleName) {
-        this.visibleName = visibleName;
-        if(npcRepository == null)
-            npcRepository = Injector.getInstance(NPCRepository.class);
-        npcRepository.save(this);
-        return this;
-    }
 
     /**
      * Définit la texture du NPC en utilisant la skin du joueur spécifié.
@@ -217,128 +213,9 @@ public class NPC {
      * @return L'instance du NPC.
      */
     @BsonIgnore
-    public NPC setTexture(Player player) {
-        setTexture(((CraftPlayer) player).getHandle().getGameProfile().getProperties().get("textures").iterator().next());
-        if(npcRepository == null)
-            npcRepository = Injector.getInstance(NPCRepository.class);
-        npcRepository.save(this);
-        return this;
-    }
-
-    /**
-     * Définit la texture du NPC en utilisant la propriété spécifiée.
-     *
-     * @param prop La propriété contenant la valeur et la signature de la texture.
-     * @return L'instance du NPC.
-     */
-    @BsonIgnore
-    public NPC setTexture(@NotNull Property prop) {
-        skin = new Skin(prop.getValue(), prop.getSignature());
-        if(npcRepository == null)
-            npcRepository = Injector.getInstance(NPCRepository.class);
-        npcRepository.save(this);
-        return this;
-    }
-
-    /**
-     * Définit la texture du NPC.
-     *
-     * @param skin La skin du NPC.
-     * @return L'instance du NPC.
-     */
-    @BsonIgnore
-    public NPC setTexture(Skin skin) {
-        this.skin = skin;
-        if(npcRepository == null)
-            npcRepository = Injector.getInstance(NPCRepository.class);
-        npcRepository.save(this);
-        return this;
-    }
-
-    /**
-     * Définit le monde du NPC.
-     *
-     * @param world Le monde du NPC.
-     * @return L'instance du NPC.
-     */
-    @BsonIgnore
-    public NPC setWorld(@NotNull World world) {
-        npcLocation.setWorld(world);
-        if(npcRepository == null)
-            npcRepository = Injector.getInstance(NPCRepository.class);
-        npcRepository.save(this);
-        return this;
-    }
-
-    /**
-     * Définit la coordonnée X du NPC.
-     *
-     * @param x La coordonnée X du NPC.
-     * @return L'instance du NPC.
-     */
-    @BsonIgnore
-    public NPC setX(double x) {
-        npcLocation.setX(x);
-        if(npcRepository == null)
-            npcRepository = Injector.getInstance(NPCRepository.class);
-        npcRepository.save(this);
-        return this;
-    }
-
-    /**
-     * Définit la coordonnée Y du NPC.
-     *
-     * @param y La coordonnée Y du NPC.
-     * @return L'instance du NPC.
-     */
-    @BsonIgnore
-    public NPC setY(double y) {
-        npcLocation.setY(y);
-        if(npcRepository == null)
-            npcRepository = Injector.getInstance(NPCRepository.class);
-        npcRepository.save(this);
-        return this;
-    }
-
-    /**
-     * Définit la coordonnée Z du NPC.
-     *
-     * @param z La coordonnée Z du NPC.
-     * @return L'instance du NPC.
-     */
-    @BsonIgnore
-    public NPC setZ(double z) {
-        npcLocation.setZ(z);
-        if(npcRepository == null)
-            npcRepository = Injector.getInstance(NPCRepository.class);
-        npcRepository.save(this);
-        return this;
-    }
-
-    /**
-     * Définit l'angle de rotation en hauteur du NPC.
-     *
-     * @param pitch L'angle de rotation en hauteur du NPC.
-     * @return L'instance du NPC.
-     */
-    @BsonIgnore
-    public NPC setPitch(float pitch) {
-        npcLocation.setPitch(pitch);
-        if(npcRepository == null)
-            npcRepository = Injector.getInstance(NPCRepository.class);
-        npcRepository.save(this);
-        return this;
-    }
-
-    /**
-     * Définit l'angle de rotation en direction du NPC.
-     *
-     * @param yaw L'angle de rotation en direction du NPC.
-     * @return L'instance du NPC.
-     */
-    @BsonIgnore
-    public NPC setYaw(float yaw) {
-        npcLocation.setYaw(yaw);
+    public NPC textureByPlayer(Player player) {
+        Property property = ((CraftPlayer) player).getHandle().getGameProfile().getProperties().get("textures").iterator().next();
+        skin = new Skin(property.getValue(), property.getSignature());
         if(npcRepository == null)
             npcRepository = Injector.getInstance(NPCRepository.class);
         npcRepository.save(this);
@@ -374,7 +251,7 @@ public class NPC {
      */
     @BsonIgnore
     public void spawn() {
-        ServerPlayer npc = getServerPlayer();
+        ServerPlayer npc = toServerPlayer();
         PacketUtils.sendPacketToAll(new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, npc));
         PacketUtils.sendPacketToAll(new ClientboundAddPlayerPacket(npc));
         PacketUtils.sendPacketToAll(new ClientboundTeleportEntityPacket(npc));
@@ -391,7 +268,7 @@ public class NPC {
      */
     @BsonIgnore
     public void spawn(Player player) {
-        ServerPlayer npc = getServerPlayer();
+        ServerPlayer npc = toServerPlayer();
         PacketUtils.sendPacket(player, new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, npc));
         PacketUtils.sendPacket(player, new ClientboundAddPlayerPacket(npc));
         PacketUtils.sendPacket(player, new ClientboundTeleportEntityPacket(npc));
@@ -460,13 +337,14 @@ public class NPC {
         if (!playerManager.isRegister(this.entityID))
             playerManager.registerNPC(this);
             if(npcRepository == null)
-            npcRepository = Injector.getInstance(NPCRepository.class);
+                npcRepository = Injector.getInstance(NPCRepository.class);
+        npcController.deRegisterNPC(this);
         npcRepository.delete(this);
     }
 
     @BsonIgnore
     @NotNull
-    private ServerPlayer getServerPlayer() {
+    private ServerPlayer toServerPlayer() {
         if (playerManager.isRegister(this.entityID))
             playerManager.registerNPC(this);
         GameProfile gameProfile = new GameProfile(npcUUID, name);
@@ -482,5 +360,17 @@ public class NPC {
         npc.gameProfile.getProperties().removeAll("textures");
         npc.gameProfile.getProperties().put("textures", new Property("textures", skin.getTextureValue(), skin.getTextureSignature()));
         return npc;
+    }
+
+    public String toString(){
+        return "NPC{" +
+                "npcUUID=" + npcUUID +
+                ", name='" + name + '\'' +
+                ", skin=" + skin +
+                ", entityID=" + entityID +
+                ", npcLocation=" + npcLocation +
+                ", visibleName=" + visibleName +
+                ", attributes=" + attributes +
+                '}';
     }
 }

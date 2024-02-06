@@ -30,7 +30,7 @@ public class BuildMode {
     public void register(Player player){
         players.add(player);
         regionController.getRegions().forEach(region -> {
-            if(region.visibility && (!userManager.getUser(player).hasAttribute("build_particles") || userManager.getUser(player).getAttribute("build_particles").equals("true")))
+            if(region.getStart().getWorld() == player.getWorld() && region.visibility && (!userManager.getUser(player).hasAttribute("build_particles") || userManager.getUser(player).getAttribute("build_particles").equals("true")))
                 region.getParticles().forEach(packet -> PacketUtils.sendPacket(player,packet));
             });
         if(checker == null)
@@ -49,7 +49,7 @@ public class BuildMode {
     public void step(){
         regionController.getRegions().forEach(r -> {
             Bukkit.getOnlinePlayers().forEach(player -> {
-                 if(r.visibility && (!userManager.getUser(player).hasAttribute("build_particles") || userManager.getUser(player).getAttribute("build_particles").equals("true")))
+                 if(r.getStart().getWorld() == player.getWorld() && r.visibility && (!userManager.getUser(player).hasAttribute("build_particles") || userManager.getUser(player).getAttribute("build_particles").equals("true")))
                     PacketUtils.sendPackets(players, r.getParticles());
             });
         });
@@ -57,7 +57,7 @@ public class BuildMode {
 
     public List<String> getSafeZone(){
         return List.of(
-                        "Spawn","default");
+                        "Spawn","default","lobby");
     }
 
     public List<Region> getSafeRegions(){

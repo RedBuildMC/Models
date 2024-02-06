@@ -1,6 +1,5 @@
 package fr.redbuild.models.spigot.plugin;
 
-import fr.redbuild.models.spigot.npc.NPCController;
 import fr.redbuild.models.spigot.region.RegionController;
 import fr.redbuild.models.spigot.user.UserManager;
 import fr.redbuild.models.spigot.utils.injector.Injector;
@@ -14,6 +13,8 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class PluginController extends JavaPlugin {
     @Setter
@@ -22,6 +23,7 @@ public abstract class PluginController extends JavaPlugin {
 
     public static CodecController codecController = new CodecController();
     public static PluginController INSTANCE;
+    private List<ServerInfo> classInfo = new ArrayList<>();
 
     public abstract void pluginStart();
 
@@ -32,22 +34,24 @@ public abstract class PluginController extends JavaPlugin {
     }
 
     public abstract String dbName();
+
+    public void registerClassInfo(ServerInfo info){
+        classInfo.add(info);
+    }
+
     @Override
     public void onEnable(){
         INSTANCE = this;
         saveDefaultConfig();
         regionController = new RegionController();
         Injector.registerInjectedInstances(INSTANCE);
-        NPCController npcController = new NPCController();
         RegionController regionController = new RegionController();
         Injector.registerInstance(MiniMessage.class.getSimpleName(), MiniUtils.getMiniMessage());
         Injector.registerInstance(codecController);
         codecController.initialize();
-        Injector.registerInstance(npcController);
         Injector.inject(regionController);
         CtMsg.init();
         //pas de code avant
-        npcController.initialize();
         regionController.initialize();
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         try {
@@ -62,6 +66,7 @@ public abstract class PluginController extends JavaPlugin {
         UserManager userManager = new UserManager();
         Injector.registerInstance(userManager);
         userManager.init();
+        classInfo.forEach(ServerInfo::serverStart);
         this.pluginStart();
     }
 
@@ -71,6 +76,7 @@ public abstract class PluginController extends JavaPlugin {
         Injector.getInstance(UserManager.class).deInit();
         if(regionController != null)
             regionController.stopRegionChecker();
+        classInfo.forEach(ServerInfo::serverStop);
     }
 
     @Override

@@ -60,7 +60,6 @@ public abstract class Cmd extends Command{
         if (!cmdArguments.isEmpty() || !cmdArgumentWPs.isEmpty()) {
             if (args.length == 0 && cmdArguments.stream().anyMatch(a -> a.isOptional() && a.pos == args.length) && cmdArgumentWPs.stream().anyMatch(a -> a.isOptional() && a.pos == args.length)) {
                 this.execute(sender, commandLabel, finalArgs);
-                System.out.println("ok");
                 return true;
             }
             for (CmdArgumentWP arg : cmdArgumentWPs) {

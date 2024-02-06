@@ -4,6 +4,8 @@ import com.mongodb.MongoClientSettings;
 
 import fr.redbuild.models.spigot.grade.Grade;
 import fr.redbuild.models.spigot.mongo.codecs.*;
+import fr.redbuild.models.spigot.npc.NPC;
+import fr.redbuild.models.spigot.npc.Skin;
 import fr.redbuild.models.spigot.region.Region;
 import fr.redbuild.models.spigot.user.User;
 import fr.redbuild.models.spigot.world.SWorld;
@@ -52,14 +54,16 @@ public class CodecController {
      * @return
      */
     public CodecRegistry getCodecRegistries() {
-        return CodecRegistries.fromRegistries(CodecRegistries.fromCodecs(this.codecs),CodecRegistries.fromCodecs(new NPCCodec(),new ItemStackCodec(),new LocationCodec(),new WorldCodec(),new UuidCodec(),new PlayerCodec())
+        return CodecRegistries.fromRegistries(CodecRegistries.fromCodecs(this.codecs),CodecRegistries.fromCodecs(new ItemStackCodec(),new LocationCodec(),new WorldCodec(),new UuidCodec(),new PlayerCodec())
                 ,CodecRegistries.fromProviders(PojoCodecProvider.builder().register(
                         //Region
                         Region.class,
                         //World
                         SWorld.class,
                         //User
-                        User.class,Grade.class
+                        User.class,Grade.class,
+                        //NPC
+                        NPC.class,Skin.class
                 ).build()),CodecRegistries.fromProviders(this.codecProviders),
                 MongoClientSettings.getDefaultCodecRegistry());
     }

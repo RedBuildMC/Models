@@ -26,8 +26,8 @@ public class EditNpcLocationMode {
 
     public void execute(){
         bar.setVisible(false);
-        player.sendMessage(MiniUtils.getMiniMessage().deserialize("<green>Location of : <gold>"+ npc.name + "<green> Changed !"));
-        npc.npcLocation = player.getLocation();
+        player.sendMessage(MiniUtils.getMiniMessage().deserialize("<green>Location of : <gold>"+ npc.getName() + "<green> Changed !"));
+        npc.setNpcLocation(player.getLocation());
         npc.update();
     }
 }

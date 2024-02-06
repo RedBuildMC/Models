@@ -3,6 +3,7 @@ package fr.redbuild.models.spigot.Gui;
 import fr.redbuild.models.spigot.Kyori.MiniUtils;
 import fr.redbuild.models.spigot.handlers.OnGuiClickHandler;
 import fr.redbuild.models.spigot.listeners.handlers.HandlerListener;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -23,7 +24,7 @@ public class GuiBuilder {
     private MiniMessage mm = MiniUtils.getMiniMessage();
     private List<ItemBuilder> items = new ArrayList<>();
 
-    private String name;
+    private Component name;
 
     private int rows = 1;
 
@@ -35,7 +36,7 @@ public class GuiBuilder {
      * @param name Le nom de la GUI.
      */
     public GuiBuilder(@NotNull String name){
-        this.name = name;
+        this.name = mm.deserialize(name);
     }
 
     /**
@@ -64,8 +65,8 @@ public class GuiBuilder {
      *
      * @return Le nom de la GUI.
      */
-    public String name(){
-        return  name;
+    public Component name(){
+        return name;
     }
 
     /**
@@ -75,7 +76,7 @@ public class GuiBuilder {
      * @return L'instance actuelle de GuiBuilder.
      */
     public GuiBuilder name(String name){
-        this.name = name;
+        this.name = mm.deserialize(name);
         return this;
     }
 
@@ -85,9 +86,16 @@ public class GuiBuilder {
      * @param mat Le matériau de l'item.
      * @param pos La position de l'item.
      */
-    private void item(Material mat,int pos){
+    public GuiBuilder item(Material mat,int pos){
         ItemBuilder item = new ItemBuilder(mat,"").desc("").setPos(pos);
         item(item);
+        return this;
+    }
+
+    public GuiBuilder item(Material mat,int pos,String name){
+        ItemBuilder item = new ItemBuilder(mat,name).desc("").setPos(pos);
+        item(item);
+        return this;
     }
 
     /**
@@ -97,10 +105,10 @@ public class GuiBuilder {
      * @return L'instance actuelle de GuiBuilder.
      */
     public GuiBuilder fillSides(Material mat){
-        fillBot(mat);
         fillLeft(mat);
         fillRight(mat);
         fillTop(mat);
+        fillBot(mat);
         return this;
     }
 
@@ -217,7 +225,7 @@ public class GuiBuilder {
      * @return L'inventaire de la GUI.
      */
     public Inventory build(){
-        Inventory inv = Bukkit.createInventory(null,rows*9,mm.deserialize(name));
+        Inventory inv = Bukkit.createInventory(null,rows*9,name);
         for(ItemBuilder item : items){
             if(item.getPos() < rows*9){
                 inv.setItem(item.getPos(),item.build());

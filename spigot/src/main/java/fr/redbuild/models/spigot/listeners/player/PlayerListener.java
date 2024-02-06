@@ -3,6 +3,7 @@ import fr.redbuild.models.spigot.Autowired.Autowired;
 import fr.redbuild.models.spigot.player.PlayerManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -18,5 +19,10 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onLeave(PlayerQuitEvent event){
         playerManager.deRegisterPlayer(event.getPlayer());
+    }
+
+    @EventHandler
+    public void worldChange(PlayerChangedWorldEvent event){
+        playerManager.worldChange(event.getPlayer());
     }
 }

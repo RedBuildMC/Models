@@ -31,9 +31,9 @@ public class User {
     @BsonProperty
     private Date firstConnection;
     @BsonProperty
-    private Map<String,String> attributes;
+    private Map<String,Object> attributes;
     @BsonIgnore
-    public void addAttribute(String key, String value) {
+    public void addAttribute(String key, Object value) {
         attributes.put(key, value);
     }
     @BsonIgnore
@@ -41,7 +41,7 @@ public class User {
         attributes.remove(key);
     }
     @BsonIgnore
-    public void setAttribute(String key, String value) {
+    public void setAttribute(String key, Object value) {
         attributes.put(key, value);
     }
     @BsonIgnore
@@ -49,7 +49,7 @@ public class User {
         return attributes.containsKey(key);
     }
     @BsonIgnore
-    public String getAttribute(String key) {
+    public Object getAttribute(String key) {
         return attributes.get(key);
     }
     @BsonIgnore
