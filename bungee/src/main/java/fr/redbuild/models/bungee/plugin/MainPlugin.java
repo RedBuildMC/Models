@@ -1,6 +1,4 @@
-package fr.redbuild.models.bungee.MainPlugin;
-
-import fr.redbuild.models.bungee.Logs.LogManager;
+package fr.redbuild.models.bungee.plugin;
 import net.md_5.bungee.api.plugin.Plugin;
 
 public abstract class MainPlugin extends Plugin{
@@ -14,13 +12,12 @@ public abstract class MainPlugin extends Plugin{
     @Override
     public void onEnable(){
         pluginStart();
-        LogManager.test(this);
 
     }
 
     @Override
     public void onDisable(){
         pluginStop();
-        LogManager.saveLogs();
+
     }
 }
