@@ -14,5 +14,3 @@ out/
 .DS_Store
 .gradle/buildOutputCleanup/outputFiles.bin
 .gradle/buildOutputCleanup/buildOutputCleanup.lock
-bungee/build.gradle
-spigot/build.gradle
