@@ -1,0 +1,33 @@
+package fr.elitgaimix.models.spigot.commands.defaultcmd.region.subcmd;
+
+import fr.elitgaimix.models.spigot.Autowired.Autowired;
+import fr.elitgaimix.models.spigot.commands.SubCmd.SubCmd;
+import fr.elitgaimix.models.spigot.commands.arg.Argument;
+import fr.elitgaimix.models.spigot.commands.defaultarguments.RegionArgument;
+import fr.elitgaimix.models.spigot.region.Region;
+import fr.elitgaimix.models.spigot.region.RegionController;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+public class EditRegion extends SubCmd {
+    @Autowired
+    private MiniMessage mm;
+    @Autowired
+    private RegionController regionController;
+    public EditRegion(Boolean optional) {
+        super("edit", optional);
+        rc(1,new RegionArgument("region",false));
+    }
+
+    @Override
+    public void execute(CommandSender sender, String args, Argument argument) {
+        if(sender instanceof Player player) {
+            if (argument.getOptional(1, Region.class).isEmpty()) {
+                player.sendMessage(mm.deserialize("<red>Cette region n'existe pas"));
+                return;
+            }
+            regionController.openEditor(player, argument.get(1, Region.class));
+            }
+        }
+}

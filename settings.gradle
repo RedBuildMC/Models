@@ -4,6 +4,8 @@
 
 rootProject.name = 'models'
 include(':models_bungee')
-include(':models_spigot')
-project(":models_bungee").projectDir = file('bungee')
-project(":models_spigot").projectDir = file('spigot')
+include(':models_paper')
+// include(':models_spigot')
+project(":models_bungee").projectDir = file('bungeeAPI')
+project(":models_paper").projectDir = file('paperAPI')
+// project(":models_spigot").projectDir = file('spigotAPI')
